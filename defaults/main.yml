@@ -1,0 +1,20 @@
+---
+# Lifted from the `geerlingguy.certbot` role that this role is attempting
+# to shim.
+certbot_certs: []
+  # - email: janedoe@example.com
+  #   domains:
+  #     - example1.com
+  #     - example2.com
+  # - domains:
+  #     - example3.com
+
+# The root directory under which all the generated certs will exist.
+# Note that subdirectories are created per-host.
+testing_certs_root_dir: /etc/self-signed-certs/live
+
+# Fields for the self-signed certificate generation
+testing_certs_subject_country: US
+testing_certs_subject_city: San Francisco
+testing_certs_subject_org_name: Local Testing
+testing_certs_subject_org_unit: Local Testing Department

@@ -1,0 +1,79 @@
+---
+# This file was cribbed largely from:
+# https://gist.github.com/jaymecd/e4117d887ec96aee8492
+# also https://github.com/owntracks/tools/blob/master/TLS/generate-CA.sh
+
+- set_fact: _domain_cert_dir="{{ testing_certs_root_dir }}/{{ cert_item.domains[0] }}"
+
+- name: Clear the generated certs directory
+  file: path="{{ _domain_cert_dir }}" state=absent
+
+- name: Ensure the target directory for this domain exists
+  file: path="{{ _domain_cert_dir }}/ca" state=directory mode=0755
+
+# Create the root CA
+- name: Generate a private key for the CA
+  openssl_privatekey:
+    path: "{{ _domain_cert_dir }}/ca/privkey.pem"
+    force: True
+
+- name: Generate a "root" CA certificate (for one time local use)
+  command: openssl req \
+    -x509 \
+    -new \
+    -nodes \
+    -days 3650 \
+    -key "{{ _domain_cert_dir }}/ca/privkey.pem" \
+    -out "{{ _domain_cert_dir }}/ca/crt.pem" \
+    -subj "/C={{ testing_certs_subject_country }}/L={{ testing_certs_subject_city }}/O={{ testing_certs_subject_org_name }}/OU={{ testing_certs_subject_org_unit }}/CN={{ testing_certs_subject_org_name }} CA"
+  args:
+    creates: "{{ _domain_cert_dir }}/ca/crt.pem"
+
+# Create the certificate
+- name: Generate a private key for the certificate
+  openssl_privatekey:
+    path: "{{ _domain_cert_dir }}/privkey.pem"
+    force: True
+
+- name: Generate a certificate signing request for the new certificate
+  openssl_csr:
+    path: "{{ _domain_cert_dir }}/csr.pem"
+    privatekey_path: "{{ _domain_cert_dir }}/privkey.pem"
+    country_name: "{{ testing_certs_subject_country }}"
+    locality_name: "{{ testing_certs_subject_city }}"
+    organization_name: "{{ testing_certs_subject_org_name }}"
+    organizational_unit_name: "{{ testing_certs_subject_org_unit }}"
+    common_name: "{{ cert_item.domains[0] }}"
+    subject_alt_name: "DNS:{{ cert_item.domains | join(',DNS:') }}"
+    force: True
+
+# Get the root CA to sign the certificate
+- name: Get the root CA to sign the certificate
+  command: openssl x509 \
+    -req -in "{{ _domain_cert_dir }}/csr.pem" \
+    -CA "{{ _domain_cert_dir }}/ca/crt.pem" \
+    -CAkey "{{ _domain_cert_dir }}/ca/privkey.pem" \
+    -CAcreateserial \
+    -out "{{ _domain_cert_dir }}/cert.pem" \
+    -days 3650
+  args:
+    creates: "{{ _domain_cert_dir }}/cert.pem"
+
+- name: Delete the CSR
+  file: path="{{ _domain_cert_dir }}/csr.pem" state=absent
+
+# Bundle the certificate with the CA certificate to create the "chain" files
+- name: Generate the chain file (containing just the CA certificate)
+  shell: cat \
+    "{{ _domain_cert_dir }}/ca/crt.pem" \
+    > "{{ _domain_cert_dir }}/chain.pem"
+  args:
+    creates: "{{ _domain_cert_dir }}/chain.pem"
+
+- name: Generate the fullchain file (containing both the CA cert and the server cert)
+  shell: cat \
+    "{{ _domain_cert_dir }}/cert.pem" \
+    "{{ _domain_cert_dir }}/ca/crt.pem" \
+    > "{{ _domain_cert_dir }}/fullchain.pem"
+  args:
+    creates: "{{ _domain_cert_dir }}/fullchain.pem"
