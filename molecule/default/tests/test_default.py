@@ -1,6 +1,9 @@
 import os
 from os.path import join
 import pytest
+import OpenSSL.crypto
+from cryptography import x509
+from cryptography.x509.oid import ExtensionOID
 import testinfra.utils.ansible_runner
 
 testinfra_hosts = testinfra.utils.ansible_runner.AnsibleRunner(
@@ -8,6 +11,13 @@ testinfra_hosts = testinfra.utils.ansible_runner.AnsibleRunner(
 
 
 cert_dir = '/etc/self-signed-certs/live/'
+
+def get_openssl_extension(cert, ext_name):
+    for i in range(cert.get_extension_count()):
+        ext = cert.get_extension(i)
+        if ext.get_short_name() == ext_name:
+            return ext
+    return False
 
 
 @pytest.mark.parametrize('domain', ['example1.com', 'example3.com'])
@@ -28,36 +38,42 @@ def test_domain_cert_directories_exist(host, domain):
     ('fullchain.pem', '0644'),
 ])
 def test_domain_certificate_files_exist(host, domain, finfo):
-    assert host.file(join(
-            cert_dir, domain, finfo[0])).exists
-
+    assert host.file(join(cert_dir, domain, finfo[0])).exists
     assert oct(host.file(join(cert_dir, domain, finfo[0])).mode) == finfo[1]
 
 
 @pytest.mark.parametrize('domain', ['example1.com', 'example3.com'])
-def test_domains_represented_in_cert_pem(host, domain):
-    """
-    #  - assert that the domains specified are present in the cert.pem file
-    #    openssl x509 -noout -text -nameopt multiline -in <cert file>
-
-    # ca/crt.pem has all of :
-    #country_name: "{{ self_signed_certs_subject_country }}"
-    #locality_name: "{{ self_signed_certs_subject_city }}"
-    #organization_name: "{{ self_signed_certs_subject_org_name }}"
-    #organizational_unit_name: "{{ self_signed_certs_subject_org_unit }}"
-    # common_name: "{{ self_signed_certs_subject_org_name }}"
+def test_domains_represented_in_ca_cert_pem(host, domain):
+    cfile = host.file(join(cert_dir, domain, 'ca/crt.pem')).content
+    cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, cfile)
+    assert cert.get_subject().countryName == "US"
+    assert cert.get_subject().localityName == "San Francisco"
+    assert cert.get_subject().organizationName == "Self Signed"
+    assert cert.get_subject().organizationalUnitName == \
+        "Self Signed Certificates Department"
+    assert cert.get_subject().commonName == "Self Signed"
 
 
-    # cert.pem cert has all of :
-    # country_name: "{{ self_signed_certs_subject_country }}"
-    # locality_name: "{{ self_signed_certs_subject_city }}"
-    # organization_name: "{{ self_signed_certs_subject_org_name }}"
-    # organizational_unit_name: "{{ self_signed_certs_subject_org_unit }}"
-    # common_name: "{{ cert_item.domains | first }}"
-    # subject_alt_name: "DNS:{{ cert_item.domains | join(',DNS:') }}"
-    """
+@pytest.mark.parametrize('domain', [
+    ('example1.com', ['example1.com', 'example2.com']),
+    ('example3.com', ['example3.com'])
+])
+def test_domains_represented_in_domain_cert_pem(host, domain):
+    cfile = host.file(join(cert_dir, domain[0], 'cert.pem')).content
+    cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, cfile)
+    assert cert.get_subject().countryName == "US"
+    assert cert.get_subject().localityName == "San Francisco"
+    assert cert.get_subject().organizationName == "Self Signed"
+    assert cert.get_subject().organizationalUnitName == \
+        "Self Signed Certificates Department"
+    assert cert.get_subject().commonName == domain[0]
 
-    pass
+    # Dealing with ASN.1 fields is a bit tricker, let's fall back
+    # on the cryptography package
+    csert = cert.to_cryptography()
+    ext = csert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
+    san_domains = ext.value.get_values_for_type(x509.DNSName)
+    assert san_domains == domain[1]
 
 
 @pytest.mark.parametrize('domain', ['example1.com', 'example3.com'])

@@ -18,6 +18,9 @@ self_signed_certs_root_dir: /etc/self-signed-certs/live
 # on every deploy.
 self_signed_certs_keep_existing: True
 
+# How long with the CA and domain certificates last
+self_signed_certs_lifetime: 3650
+
 # Fields for the self-signed certificate generation
 self_signed_certs_subject_country: US
 self_signed_certs_subject_city: San Francisco

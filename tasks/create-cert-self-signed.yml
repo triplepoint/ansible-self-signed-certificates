@@ -4,7 +4,7 @@
 # also https://github.com/owntracks/tools/blob/master/TLS/generate-CA.sh
 
 - name: Define the certificate directory for this domain
-  set_fact: _domain_cert_dir="{{ self_signed_certs_root_dir }}/{{ cert_item.domains[0] }}"
+  set_fact: _domain_cert_dir="{{ self_signed_certs_root_dir }}/{{ cert_item.domains | first }}"
 
 - name: If we're not keeping existing certs, clear the generated certificate directory for this domain
   file: path="{{ _domain_cert_dir }}" state=absent
@@ -20,17 +20,17 @@
 
 - name: Generate a CA certificate
   command: openssl req \
-    -x509 \
     -new \
+    -x509 \
     -nodes \
-    -days 3650 \
     -key "{{ _domain_cert_dir }}/ca/privkey.pem" \
     -out "{{ _domain_cert_dir }}/ca/crt.pem" \
-    -subj "/C={{ self_signed_certs_subject_country }}/L={{ self_signed_certs_subject_city }}/O={{ self_signed_certs_subject_org_name }}/OU={{ self_signed_certs_subject_org_unit }}/CN={{ self_signed_certs_subject_org_name }} CA"
+    -subj "/C={{ self_signed_certs_subject_country }}/L={{ self_signed_certs_subject_city }}/O={{ self_signed_certs_subject_org_name }}/OU={{ self_signed_certs_subject_org_unit }}/CN={{ self_signed_certs_subject_org_name }}" \
+    -days {{ self_signed_certs_lifetime }}
   args:
     creates: "{{ _domain_cert_dir }}/ca/crt.pem"
 
-# Create the domain certificate
+# Create the domain certificate private key and signing request
 - name: Determine whether the domain certificate file already exists
   stat: path="{{ _domain_cert_dir }}/cert.pem"
   register: _domain_cert_stat
@@ -47,24 +47,34 @@
     locality_name: "{{ self_signed_certs_subject_city }}"
     organization_name: "{{ self_signed_certs_subject_org_name }}"
     organizational_unit_name: "{{ self_signed_certs_subject_org_unit }}"
-    common_name: "{{ cert_item.domains[0] }}"
-    subject_alt_name: "DNS:{{ cert_item.domains | join(',DNS:') }}"
+    common_name: "{{ cert_item.domains | first }}"
+    subject_alt_name: "{{ cert_item.domains | map('regex_replace', '^', 'DNS:') | list }}"
   when: not _domain_cert_stat.stat.exists
 
 # Get the root CA to sign the certificate
+- name: generate the temporary openssl.cnf file
+  template: src=openssl.cnf.j2 dest="{{ _domain_cert_dir }}/openssl.cnf"
+  when: not _domain_cert_stat.stat.exists
+
 - name: Get the root CA to sign the certificate
   command: openssl x509 \
-    -req -in "{{ _domain_cert_dir }}/csr.pem" \
+    -req \
+    -in "{{ _domain_cert_dir }}/csr.pem" \
     -CA "{{ _domain_cert_dir }}/ca/crt.pem" \
     -CAkey "{{ _domain_cert_dir }}/ca/privkey.pem" \
     -CAcreateserial \
+    -extensions v3_req \
+    -extfile {{ _domain_cert_dir }}/openssl.cnf \
     -out "{{ _domain_cert_dir }}/cert.pem" \
-    -days 3650
+    -days {{ self_signed_certs_lifetime }}
   args:
     creates: "{{ _domain_cert_dir }}/cert.pem"
 
-# - name: Delete the CSR
-#   file: path="{{ _domain_cert_dir }}/csr.pem" state=absent
+- name: Delete the CSR and the openssl.cnf file
+  file: path="{{ item }}" state=absent
+  with_items:
+    - "{{ _domain_cert_dir }}/csr.pem"
+    - "{{ _domain_cert_dir }}/openssl.cnf"
 
 # Bundle the domain certificate with the CA certificate to create the "chain" files
 - name: Generate the chain file (containing just the CA certificate)
