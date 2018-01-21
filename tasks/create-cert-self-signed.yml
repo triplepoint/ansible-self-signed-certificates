@@ -6,19 +6,19 @@
 - name: Define the certificate directory for this domain
   set_fact: _domain_cert_dir="{{ self_signed_certs_root_dir }}/{{ cert_item.domains[0] }}"
 
-- name: Clear the generated certs directory for the domain
+- name: If we're not keeping existing certs, clear the generated certificate directory for this domain
   file: path="{{ _domain_cert_dir }}" state=absent
+  when: not self_signed_certs_keep_existing
 
-- name: Ensure the target directory for this domain exists
+- name: Ensure the target directory structure for this domain exists
   file: path="{{ _domain_cert_dir }}/ca" state=directory mode=0755
 
-# Create the root CA
+# Create the (self-signed) CA's certificate
 - name: Generate a private key for the CA
   openssl_privatekey:
     path: "{{ _domain_cert_dir }}/ca/privkey.pem"
-    force: True
 
-- name: Generate a "root" CA certificate
+- name: Generate a CA certificate
   command: openssl req \
     -x509 \
     -new \
@@ -30,11 +30,14 @@
   args:
     creates: "{{ _domain_cert_dir }}/ca/crt.pem"
 
-# Create the certificate
+# Create the domain certificate
+- name: Determine whether the domain certificate file already exists
+  stat: path="{{ _domain_cert_dir }}/cert.pem"
+  register: _domain_cert_stat
+
 - name: Generate a private key for the certificate
   openssl_privatekey:
     path: "{{ _domain_cert_dir }}/privkey.pem"
-    force: True
 
 - name: Generate a certificate signing request for the new certificate
   openssl_csr:
@@ -46,7 +49,7 @@
     organizational_unit_name: "{{ self_signed_certs_subject_org_unit }}"
     common_name: "{{ cert_item.domains[0] }}"
     subject_alt_name: "DNS:{{ cert_item.domains | join(',DNS:') }}"
-    force: True
+  when: not _domain_cert_stat.stat.exists
 
 # Get the root CA to sign the certificate
 - name: Get the root CA to sign the certificate
@@ -60,10 +63,10 @@
   args:
     creates: "{{ _domain_cert_dir }}/cert.pem"
 
-- name: Delete the CSR
-  file: path="{{ _domain_cert_dir }}/csr.pem" state=absent
+# - name: Delete the CSR
+#   file: path="{{ _domain_cert_dir }}/csr.pem" state=absent
 
-# Bundle the certificate with the CA certificate to create the "chain" files
+# Bundle the domain certificate with the CA certificate to create the "chain" files
 - name: Generate the chain file (containing just the CA certificate)
   shell: cat \
     "{{ _domain_cert_dir }}/ca/crt.pem" \
