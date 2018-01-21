@@ -9,6 +9,6 @@ galaxy_info:
       versions:
         - xenial
   galaxy_tags:
-    - ssl_certificates
-    - self_signed_certificates
+    - sslcertificates
+    - selfsignedcertificates
 dependencies: []
