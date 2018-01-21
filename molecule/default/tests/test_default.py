@@ -12,13 +12,6 @@ testinfra_hosts = testinfra.utils.ansible_runner.AnsibleRunner(
 
 cert_dir = '/etc/self-signed-certs/live/'
 
-def get_openssl_extension(cert, ext_name):
-    for i in range(cert.get_extension_count()):
-        ext = cert.get_extension(i)
-        if ext.get_short_name() == ext_name:
-            return ext
-    return False
-
 
 @pytest.mark.parametrize('domain', ['example1.com', 'example3.com'])
 def test_domain_cert_directories_exist(host, domain):
@@ -71,7 +64,8 @@ def test_domains_represented_in_domain_cert_pem(host, domain):
     # Dealing with ASN.1 fields is a bit tricker, let's fall back
     # on the cryptography package
     csert = cert.to_cryptography()
-    ext = csert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
+    ext = csert.extensions.get_extension_for_oid(
+            ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
     san_domains = ext.value.get_values_for_type(x509.DNSName)
     assert san_domains == domain[1]
 
