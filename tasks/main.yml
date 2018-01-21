@@ -2,8 +2,8 @@
 - name: Ensure the PyOpenSSL package is available
   pip: name=pyOpenSSL
 
-- include_tasks: create-cert-self-signed.yml
-  with_items:
-    - "{{ certbot_certs }}"
+- name: Create a self signed certificate for each set of domains
+  include_tasks: create-cert-self-signed.yml
+  with_items: "{{ certbot_certs }}"
   loop_control:
     loop_var: cert_item

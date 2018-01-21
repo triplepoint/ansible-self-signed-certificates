@@ -3,9 +3,10 @@
 # https://gist.github.com/jaymecd/e4117d887ec96aee8492
 # also https://github.com/owntracks/tools/blob/master/TLS/generate-CA.sh
 
-- set_fact: _domain_cert_dir="{{ testing_certs_root_dir }}/{{ cert_item.domains[0] }}"
+- name: Define the certificate directory for this domain
+  set_fact: _domain_cert_dir="{{ self_signed_certs_root_dir }}/{{ cert_item.domains[0] }}"
 
-- name: Clear the generated certs directory
+- name: Clear the generated certs directory for the domain
   file: path="{{ _domain_cert_dir }}" state=absent
 
 - name: Ensure the target directory for this domain exists
@@ -17,7 +18,7 @@
     path: "{{ _domain_cert_dir }}/ca/privkey.pem"
     force: True
 
-- name: Generate a "root" CA certificate (for one time local use)
+- name: Generate a "root" CA certificate
   command: openssl req \
     -x509 \
     -new \
@@ -25,7 +26,7 @@
     -days 3650 \
     -key "{{ _domain_cert_dir }}/ca/privkey.pem" \
     -out "{{ _domain_cert_dir }}/ca/crt.pem" \
-    -subj "/C={{ testing_certs_subject_country }}/L={{ testing_certs_subject_city }}/O={{ testing_certs_subject_org_name }}/OU={{ testing_certs_subject_org_unit }}/CN={{ testing_certs_subject_org_name }} CA"
+    -subj "/C={{ self_signed_certs_subject_country }}/L={{ self_signed_certs_subject_city }}/O={{ self_signed_certs_subject_org_name }}/OU={{ self_signed_certs_subject_org_unit }}/CN={{ self_signed_certs_subject_org_name }} CA"
   args:
     creates: "{{ _domain_cert_dir }}/ca/crt.pem"
 
@@ -39,10 +40,10 @@
   openssl_csr:
     path: "{{ _domain_cert_dir }}/csr.pem"
     privatekey_path: "{{ _domain_cert_dir }}/privkey.pem"
-    country_name: "{{ testing_certs_subject_country }}"
-    locality_name: "{{ testing_certs_subject_city }}"
-    organization_name: "{{ testing_certs_subject_org_name }}"
-    organizational_unit_name: "{{ testing_certs_subject_org_unit }}"
+    country_name: "{{ self_signed_certs_subject_country }}"
+    locality_name: "{{ self_signed_certs_subject_city }}"
+    organization_name: "{{ self_signed_certs_subject_org_name }}"
+    organizational_unit_name: "{{ self_signed_certs_subject_org_unit }}"
     common_name: "{{ cert_item.domains[0] }}"
     subject_alt_name: "DNS:{{ cert_item.domains | join(',DNS:') }}"
     force: True

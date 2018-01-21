@@ -3,7 +3,7 @@
 # to shim.
 certbot_certs: []
   # - email: janedoe@example.com
-  #   domains:
+  # - domains:
   #     - example1.com
   #     - example2.com
   # - domains:
@@ -11,10 +11,15 @@ certbot_certs: []
 
 # The root directory under which all the generated certs will exist.
 # Note that subdirectories are created per-host.
-testing_certs_root_dir: /etc/self-signed-certs/live
+self_signed_certs_root_dir: /etc/self-signed-certs/live
+
+# Should we keep any pre-existing certificates?
+# In other words, if set to False, we'll regenerate the self-signed certs
+# on every deploy.
+self_signed_certs_keep_existing: True
 
 # Fields for the self-signed certificate generation
-testing_certs_subject_country: US
-testing_certs_subject_city: San Francisco
-testing_certs_subject_org_name: Local Testing
-testing_certs_subject_org_unit: Local Testing Department
+self_signed_certs_subject_country: US
+self_signed_certs_subject_city: San Francisco
+self_signed_certs_subject_org_name: Self Signed
+self_signed_certs_subject_org_unit: Self Signed Certificates Department
