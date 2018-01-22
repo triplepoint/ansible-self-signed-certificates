@@ -4,6 +4,6 @@
 
 - name: Create a self signed certificate for each set of domains
   include_tasks: create-cert-self-signed.yml
-  with_items: "{{ certbot_certs }}"
+  with_items: "{{ self_signed_certs }}"
   loop_control:
     loop_var: cert_item

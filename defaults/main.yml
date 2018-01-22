@@ -1,7 +1,16 @@
 ---
 # Lifted from the `geerlingguy.certbot` role that this role is attempting
 # to shim.
+#
+# By default, we'll set `self_signed_certs` to be whatever `certbot_certs` is,
+# so that we can smoothly substitute this role for `geerlingguy.certbot`
+# without changing inventory variables.  If this role is intended to be used
+# directly, it will make more sense to ignore `certbot_certs` and set
+# `self_signed_certs` directly.  This would allow, for example this role and
+# `geerlingguy.certbot` to be installed at the same time.
 certbot_certs: []
+
+self_signed_certs: "{{ certbot_certs }}"
   # - email: janedoe@example.com
   # - domains:
   #     - example1.com
