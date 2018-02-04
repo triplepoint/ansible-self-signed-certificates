@@ -17,6 +17,7 @@
 - name: Generate a private key for the CA
   openssl_privatekey:
     path: "{{ _domain_cert_dir }}/ca/privkey.pem"
+    size: "{{ self_signed_certs_key_size }}"
 
 - name: Generate a CA certificate
   command: openssl req \
@@ -38,6 +39,7 @@
 - name: Generate a private key for the certificate
   openssl_privatekey:
     path: "{{ _domain_cert_dir }}/privkey.pem"
+    size: "{{ self_signed_certs_key_size }}"
 
 - name: Generate a certificate signing request for the new certificate
   openssl_csr:
@@ -91,3 +93,9 @@
     > "{{ _domain_cert_dir }}/fullchain.pem"
   args:
     creates: "{{ _domain_cert_dir }}/fullchain.pem"
+
+- name: Generate Diffie-Hellman parameters
+  command: "openssl dhparam -out {{ _domain_cert_dir }}/dhparams.pem {{ self_signed_certs_key_size }}"
+  args:
+    creates: "{{ _domain_cert_dir }}/dhparams.pem"
+  when: self_signed_certs_gen_dhparams

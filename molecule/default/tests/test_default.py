@@ -65,7 +65,7 @@ def test_domains_represented_in_domain_cert_pem(host, domain):
     # on the cryptography package
     csert = cert.to_cryptography()
     ext = csert.extensions.get_extension_for_oid(
-            ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
+        ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
     san_domains = ext.value.get_values_for_type(x509.DNSName)
     assert san_domains == domain[1]
 
@@ -84,3 +84,9 @@ def test_content_of_chainfiles(host, domain):
 
     test_fullchain_val = domaincert + "\n" + cacert
     assert fullchainfile == test_fullchain_val
+
+
+@pytest.mark.parametrize('domain', ['example1.com', 'example3.com'])
+def test_dhparams_file_exists(host, domain):
+    assert host.file(join(cert_dir, domain, 'dhparams.pem')).exists
+    assert oct(host.file(join(cert_dir, domain, 'dhparams.pem')).mode) == '0644'
