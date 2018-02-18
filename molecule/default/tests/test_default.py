@@ -89,4 +89,6 @@ def test_content_of_chainfiles(host, domain):
 @pytest.mark.parametrize('domain', ['example1.com', 'example3.com'])
 def test_dhparams_file_exists(host, domain):
     assert host.file(join(cert_dir, domain, 'dhparams.pem')).exists
-    assert oct(host.file(join(cert_dir, domain, 'dhparams.pem')).mode) == '0644'
+    assert oct(host.file(join(
+        cert_dir, domain, 'dhparams.pem'
+    )).mode) == '0644'
