@@ -6,16 +6,18 @@ driver:
 lint:
   name: yamllint
 platforms:
-  - name: ubuntu_16_04
+  - name: xenial
     image: triplepoint/ubuntu-systemd-16.04
     privileged: true
     command: /bin/bash -c "exec /sbin/init --log-target=journal 3>&1"
-  - name: ubuntu_18_04
-    image: triplepoint/ubuntu-systemd-18.04
-    privileged: true
-    command: /bin/bash -c "exec /sbin/init --log-target=journal 3>&1"
+#   - name: bionic
+#     image: triplepoint/ubuntu-systemd-18.04
+#     privileged: true
+#     command: /bin/bash -c "exec /sbin/init --log-target=journal 3>&1"
 provisioner:
   name: ansible
+  lint:
+    name: ansible-lint
   inventory:
     group_vars:
       all:
@@ -25,15 +27,13 @@ provisioner:
               - example2.com
           - domains:
               - example3.com
-        self_signed_certs_gen_dhparams: True
-        self_signed_certs_key_size: 1024 # To make testing go faster, this should never happen in production.
+        self_signed_certs_gen_dhparams: true
+        self_signed_certs_key_size: 1024  # To make testing go faster, this should never happen in production.
         self_signed_certs_subject_country: US
         self_signed_certs_subject_city: San Francisco
         self_signed_certs_subject_org_name: Self Signed
         self_signed_certs_subject_org_unit: Self Signed Certificates Department
 
-  lint:
-    name: ansible-lint
 scenario:
   name: default
 verifier:
