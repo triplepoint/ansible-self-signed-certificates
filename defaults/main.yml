@@ -11,21 +11,21 @@
 certbot_certs: []
 
 self_signed_certs: "{{ certbot_certs }}"
-  # - email: janedoe@example.com
-  # - domains:
-  #     - example1.com
-  #     - example2.com
-  # - domains:
-  #     - example3.com
+#   - email: janedoe@example.com
+#   - domains:
+#       - example1.com
+#       - example2.com
+#   - domains:
+#       - example3.com
 
 # The root directory under which all the generated certs will exist.
 # Note that subdirectories are created per-host.
 self_signed_certs_root_dir: /etc/self-signed-certs/live
 
 # Should we keep any pre-existing certificates?
-# In other words, if set to False, we'll regenerate the self-signed certs
+# In other words, if set to false, we'll regenerate the self-signed certs
 # on every deploy.
-self_signed_certs_keep_existing: True
+self_signed_certs_keep_existing: true
 
 # How long with the CA and domain certificates last
 self_signed_certs_lifetime: 3650
@@ -33,7 +33,7 @@ self_signed_certs_lifetime: 3650
 # Should we generate Diffie-Hellman exchange parameters?
 # If true, param files will be generated for all certificates.
 # Note that it can take a while to generate these parameter files.
-self_signed_certs_gen_dhparams: False
+self_signed_certs_gen_dhparams: false
 
 # The size in bits for the keys and the dh-params file
 self_signed_certs_key_size: 4096
