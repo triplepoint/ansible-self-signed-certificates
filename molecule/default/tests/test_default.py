@@ -23,12 +23,12 @@ def test_domain_cert_directories_exist(host, domain):
 
 @pytest.mark.parametrize('domain', ['example1.com', 'example3.com'])
 @pytest.mark.parametrize('finfo', [
-    ('ca/privkey.pem', '0600'),
-    ('ca/crt.pem', '0644'),
-    ('privkey.pem', '0600'),
-    ('cert.pem', '0644'),
-    ('chain.pem', '0644'),
-    ('fullchain.pem', '0644'),
+    ('ca/privkey.pem', '0o600'),
+    ('ca/crt.pem', '0o644'),
+    ('privkey.pem', '0o600'),
+    ('cert.pem', '0o644'),
+    ('chain.pem', '0o644'),
+    ('fullchain.pem', '0o644'),
 ])
 def test_domain_certificate_files_exist(host, domain, finfo):
     assert host.file(join(cert_dir, domain, finfo[0])).exists
@@ -82,7 +82,7 @@ def test_content_of_chainfiles(host, domain):
 
     fullchainfile = host.file(join(cert_dir, domain, 'fullchain.pem')).content
 
-    test_fullchain_val = domaincert + "\n" + cacert
+    test_fullchain_val = domaincert + b"\n" + cacert
     assert fullchainfile == test_fullchain_val
 
 
@@ -91,4 +91,4 @@ def test_dhparams_file_exists(host, domain):
     assert host.file(join(cert_dir, domain, 'dhparams.pem')).exists
     assert oct(host.file(join(
         cert_dir, domain, 'dhparams.pem'
-    )).mode) == '0644'
+    )).mode) == '0o644'
