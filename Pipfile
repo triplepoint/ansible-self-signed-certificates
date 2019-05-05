@@ -8,10 +8,10 @@ name = "pypi"
 
 
 [packages]
-ansible = "==2.7.*"
-molecule = "==2.20.*"
-docker = "==3.7.*"
-pyOpenSSL = "==18.0.*"
+ansible = "*"
+molecule = "*"
+docker = "*"
+pyOpenSSL = "*"
 
 [requires]
 python_version = "3.7"
