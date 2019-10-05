@@ -26,7 +26,8 @@
     -nodes \
     -key "{{ _domain_cert_dir }}/ca/privkey.pem" \
     -out "{{ _domain_cert_dir }}/ca/crt.pem" \
-    -subj "/C={{ self_signed_certs_subject_country }}/L={{ self_signed_certs_subject_city }}/O={{ self_signed_certs_subject_org_name }}/OU={{ self_signed_certs_subject_org_unit }}/CN={{ self_signed_certs_subject_org_name }}" \
+    -subj "/C={{ self_signed_certs_subject_country }}/L={{ self_signed_certs_subject_city }}\
+    /O={{ self_signed_certs_subject_org_name }}/OU={{ self_signed_certs_subject_org_unit }}/CN={{ self_signed_certs_subject_org_name }}" \
     -days {{ self_signed_certs_lifetime }}
   args:
     creates: "{{ _domain_cert_dir }}/ca/crt.pem"
