@@ -1,6 +1,7 @@
 ---
 - name: Ensure the PyOpenSSL package is available
-  pip: name=pyOpenSSL
+  pip:
+    name: pyOpenSSL
 
 - name: Create a self signed certificate for each set of domains
   include_tasks: create-cert-self-signed.yml

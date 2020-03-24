@@ -4,14 +4,20 @@
 # also https://github.com/owntracks/tools/blob/master/TLS/generate-CA.sh
 
 - name: Define the certificate directory for this domain
-  set_fact: _domain_cert_dir="{{ self_signed_certs_root_dir }}/{{ cert_item.domains | first }}"
+  set_fact:
+    _domain_cert_dir: "{{ self_signed_certs_root_dir }}/{{ cert_item.domains | first }}"
 
 - name: If we're not keeping existing certs, clear the generated certificate directory for this domain
-  file: path="{{ _domain_cert_dir }}" state=absent
+  file:
+    path: "{{ _domain_cert_dir }}"
+    state: absent
   when: not self_signed_certs_keep_existing
 
 - name: Ensure the target directory structure for this domain exists
-  file: path="{{ _domain_cert_dir }}/ca" state=directory mode=0755
+  file:
+    path: "{{ _domain_cert_dir }}/ca"
+    state: directory
+    mode: 0755
 
 # Create the (self-signed) CA's certificate
 - name: Generate a private key for the CA
@@ -34,7 +40,8 @@
 
 # Create the domain certificate private key and signing request
 - name: Determine whether the domain certificate file already exists
-  stat: path="{{ _domain_cert_dir }}/cert.pem"
+  stat:
+    path: "{{ _domain_cert_dir }}/cert.pem"
   register: _domain_cert_stat
 
 - name: Generate a private key for the certificate
@@ -56,7 +63,9 @@
 
 # Get the root CA to sign the certificate
 - name: generate the temporary openssl.cnf file
-  template: src=openssl.cnf.j2 dest="{{ _domain_cert_dir }}/openssl.cnf"
+  template:
+    src: openssl.cnf.j2
+    dest: "{{ _domain_cert_dir }}/openssl.cnf"
   when: not _domain_cert_stat.stat.exists
 
 - name: Get the root CA to sign the certificate
@@ -74,7 +83,9 @@
     creates: "{{ _domain_cert_dir }}/cert.pem"
 
 - name: Delete the CSR and the openssl.cnf file
-  file: path="{{ item }}" state=absent
+  file:
+    path: "{{ item }}"
+    state: absent
   with_items:
     - "{{ _domain_cert_dir }}/csr.pem"
     - "{{ _domain_cert_dir }}/openssl.cnf"
