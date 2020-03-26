@@ -83,7 +83,7 @@ def test_content_of_chainfiles(host, domain):
 
     fullchainfile = host.file(join(cert_dir, domain, 'fullchain.pem')).content
 
-    test_fullchain_val = domaincert + b"\n" + cacert
+    test_fullchain_val = domaincert + cacert
     assert fullchainfile == test_fullchain_val
 
 

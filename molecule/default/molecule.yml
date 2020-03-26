@@ -34,6 +34,8 @@ provisioner:
 
 verifier:
   name: testinfra
+  # options:
+  #   vv: True
 lint: |
   set -e
   yamllint .
