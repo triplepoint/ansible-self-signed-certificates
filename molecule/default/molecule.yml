@@ -37,5 +37,5 @@ verifier:
 lint: |
   set -e
   yamllint .
-  ansible-lint
+  ansible-lint -x 204
   flake8 --max-line-length=120
