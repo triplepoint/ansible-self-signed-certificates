@@ -1,4 +1,4 @@
-# Intro [![Build Status](https://www.travis-ci.com/triplepoint/ansible-self-signed-certificates.svg?branch=master)](https://www.travis-ci.com/triplepoint/ansible-self-signed-certificates)
+# Intro [![Build Status](https://www.travis-ci.com/triplepoint/ansible-self-signed-certificates.svg?branch=main)](https://www.travis-ci.com/triplepoint/ansible-self-signed-certificates)
 Install and configure self-signed certificates for multiple domains.
 
 there's one variable defined that isn't namespaced with this role and that's `certbot_certs`.  This variable is intended to duplicate the interface of the `geerlingguy.certbot` role, so that this role can be smoothly substituted for `geerlingguy.certbot` during testing.  See the role variables for more details.
