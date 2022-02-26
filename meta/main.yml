@@ -1,6 +1,7 @@
 ---
 galaxy_info:
   role_name: self_signed_certificates
+  namespace: triplepoint
   author: Jonathan Hanson
   description: A generator for self-signed certificates with a local CA cert, intended to stand in for geerlingguy.certbot during testing or local deployments.
   license: MIT
