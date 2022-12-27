@@ -8,4 +8,4 @@ molecule = {extras = ["docker", "lint", "test"], version = "*"}
 pyOpenSSL = "*"
 
 [requires]
-python_version = "3.9"
+python_version = "3.11"
