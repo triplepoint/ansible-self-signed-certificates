@@ -4,29 +4,29 @@
 # also https://github.com/owntracks/tools/blob/master/TLS/generate-CA.sh
 
 - name: Define the certificate directory for this domain
-  set_fact:
+  ansible.builtin.set_fact:
     _domain_cert_dir: "{{ self_signed_certs_root_dir }}/{{ cert_item.domains | first }}"
 
 - name: If we're not keeping existing certs, clear the generated certificate directory for this domain
-  file:
+  ansible.builtin.file:
     path: "{{ _domain_cert_dir }}"
     state: absent
   when: not self_signed_certs_keep_existing
 
 - name: Ensure the target directory structure for this domain exists
-  file:
+  ansible.builtin.file:
     path: "{{ _domain_cert_dir }}/ca"
     state: directory
     mode: 0755
 
 # Create the (self-signed) CA's certificate
 - name: Generate a private key for the CA
-  openssl_privatekey:
+  community.crypto.openssl_privatekey:
     path: "{{ _domain_cert_dir }}/ca/privkey.pem"
     size: "{{ self_signed_certs_key_size }}"
 
 - name: Generate a CA certificate
-  command: openssl req \
+  ansible.builtin.command: openssl req \
     -new \
     -x509 \
     -nodes \
@@ -39,17 +39,17 @@
 
 # Create the domain certificate private key and signing request
 - name: Determine whether the domain certificate file already exists
-  stat:
+  ansible.builtin.stat:
     path: "{{ _domain_cert_dir }}/cert.pem"
   register: _domain_cert_stat
 
 - name: Generate a private key for the certificate
-  openssl_privatekey:
+  community.crypto.openssl_privatekey:
     path: "{{ _domain_cert_dir }}/privkey.pem"
     size: "{{ self_signed_certs_key_size }}"
 
 - name: Generate a certificate signing request for the new certificate
-  openssl_csr:
+  community.crypto.openssl_csr:
     path: "{{ _domain_cert_dir }}/csr.pem"
     privatekey_path: "{{ _domain_cert_dir }}/privkey.pem"
     country_name: "{{ self_signed_certs_subject_country }}"
@@ -61,15 +61,15 @@
   when: not _domain_cert_stat.stat.exists
 
 # Get the root CA to sign the certificate
-- name: generate the temporary openssl.cnf file
-  template:
+- name: Generate the temporary openssl.cnf file
+  ansible.builtin.template:
     src: openssl.cnf.j2
     dest: "{{ _domain_cert_dir }}/openssl.cnf"
     mode: 0644
   when: not _domain_cert_stat.stat.exists
 
 - name: Get the root CA to sign the certificate
-  command: openssl x509 \
+  ansible.builtin.command: openssl x509 \
     -req \
     -in "{{ _domain_cert_dir }}/csr.pem" \
     -CA "{{ _domain_cert_dir }}/ca/crt.pem" \
@@ -83,7 +83,7 @@
     creates: "{{ _domain_cert_dir }}/cert.pem"
 
 - name: Delete the CSR and the openssl.cnf file
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     state: absent
   with_items:
@@ -92,14 +92,14 @@
 
 # Bundle the domain certificate with the CA certificate to create the "chain" files
 - name: Generate the chain file (containing just the CA certificate)
-  shell: cat \
+  ansible.builtin.shell: cat \
     "{{ _domain_cert_dir }}/ca/crt.pem" \
     > "{{ _domain_cert_dir }}/chain.pem"
   args:
     creates: "{{ _domain_cert_dir }}/chain.pem"
 
 - name: Generate the fullchain file (containing both the CA cert and the server cert)
-  shell: cat \
+  ansible.builtin.shell: cat \
     "{{ _domain_cert_dir }}/cert.pem" \
     "{{ _domain_cert_dir }}/ca/crt.pem" \
     > "{{ _domain_cert_dir }}/fullchain.pem"
@@ -107,7 +107,7 @@
     creates: "{{ _domain_cert_dir }}/fullchain.pem"
 
 - name: Generate Diffie-Hellman parameters
-  command: "openssl dhparam -out {{ _domain_cert_dir }}/dhparams.pem {{ self_signed_certs_key_size }}"
+  ansible.builtin.command: "openssl dhparam -out {{ _domain_cert_dir }}/dhparams.pem {{ self_signed_certs_key_size }}"
   args:
     creates: "{{ _domain_cert_dir }}/dhparams.pem"
   when: self_signed_certs_gen_dhparams
