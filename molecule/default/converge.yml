@@ -1,7 +1,0 @@
----
-- name: Converge
-  hosts: all
-  tasks:
-    - name: "Include ansible-self-signed-certificates"
-      ansible.builtin.include_role:
-        name: "ansible-self-signed-certificates"
