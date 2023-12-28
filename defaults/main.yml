@@ -36,7 +36,7 @@ self_signed_certs_lifetime: 3650
 self_signed_certs_gen_dhparams: false
 
 # The size in bits for the keys and the dh-params file
-self_signed_certs_key_size: 4096
+self_signed_certs_key_size: 2048
 
 # Fields for the self-signed certificate generation
 self_signed_certs_subject_country: US
