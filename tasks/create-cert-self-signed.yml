@@ -17,7 +17,7 @@
   ansible.builtin.file:
     path: "{{ _domain_cert_dir }}/ca"
     state: directory
-    mode: 0755
+    mode: "0755"
 
 # Create the (self-signed) CA's certificate
 - name: Generate a private key for the CA
@@ -65,7 +65,7 @@
   ansible.builtin.template:
     src: openssl.cnf.j2
     dest: "{{ _domain_cert_dir }}/openssl.cnf"
-    mode: 0644
+    mode: "0644"
   when: not _domain_cert_stat.stat.exists
 
 - name: Get the root CA to sign the certificate
