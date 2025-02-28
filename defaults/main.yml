@@ -40,6 +40,6 @@ self_signed_certs_key_size: 2048
 
 # Fields for the self-signed certificate generation
 self_signed_certs_subject_country: US
-self_signed_certs_subject_city: San Francisco
+self_signed_certs_subject_city: Oakland
 self_signed_certs_subject_org_name: Self Signed
 self_signed_certs_subject_org_unit: Self Signed Certificates Department
