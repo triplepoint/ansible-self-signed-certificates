@@ -1,9 +1,4 @@
 ---
-- name: Ensure the PyOpenSSL package is available
-  ansible.builtin.pip:
-    name: pyOpenSSL
-    break_system_packages: true
-
 - name: Create a self signed certificate for each set of domains
   ansible.builtin.include_tasks: create-cert-self-signed.yml
   with_items: "{{ self_signed_certs }}"
